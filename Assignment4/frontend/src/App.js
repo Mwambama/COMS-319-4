@@ -6,6 +6,7 @@ import Sidebar from "./Sidebar";
 import AddContact from "./AddContacts.js";
 import DeleteContact from "./DeleteContact.js";
 import UpdateContact from "./UpdateContact.js";
+import  SearchContacts from "./SearchContacts.js";
 
 function App() {
     const [contacts, setContacts] = useState([]);
@@ -22,7 +23,7 @@ function App() {
                         <Route path="/add-contact" element={<AddContact contacts={contacts} setContacts={setContacts} />} /> {/* Fix the component usage */}
                         <Route path="/delete-contact" element={<DeleteContact contacts={contacts} setContacts={setContacts} />} /> {/* Fix the component usage */}
                         <Route path="/update-contact" element={<UpdateContact contacts={contacts} setContacts={setContacts} />} /> {/* Fix the component usage */}
-
+                        <Route path="/search-contacts" element={<SearchContacts contacts={contacts} setContacts={setContacts} />} /> {/* Add the search contacts route */}
                     </Routes>
                 </div>
             </div>

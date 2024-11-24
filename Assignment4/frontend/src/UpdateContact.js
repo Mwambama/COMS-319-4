@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 
-const UpdateContact = () => {
+const UpdateContact = ({ contacts, setContacts }) => {
   const [contactId, setContactId] = useState("");
   const [contactName, setContactName] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
@@ -18,12 +18,6 @@ const UpdateContact = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     updateOneContact();
-    setContactId("");
-    setContactName("");
-    setPhoneNumber("");
-    setMessage("");
-    setImage(null);
-    setPreview(null);
   };
 
   const updateOneContact = async () => {
@@ -32,7 +26,9 @@ const UpdateContact = () => {
       formData.append("contact_name", contactName);
       formData.append("phone_number", phoneNumber);
       formData.append("message", message);
-      formData.append("image", image);
+      if (image) {
+        formData.append("image", image);
+      }
 
       const response = await fetch(`http://localhost:8081/contact/${contactId}`, {
         method: "PUT",
@@ -45,6 +41,27 @@ const UpdateContact = () => {
       } else {
         const successMessage = await response.json();
         alert(successMessage.message);
+
+        setContacts(
+          contacts.map(contact =>
+            contact.id === parseInt(contactId)
+              ? {
+                  ...contact,
+                  contact_name: contactName,
+                  phone_number: phoneNumber,
+                  message,
+                  image_url: image ? URL.createObjectURL(image) : contact.image_url,
+                }
+              : contact
+          )
+        );
+
+        setContactId("");
+        setContactName("");
+        setPhoneNumber("");
+        setMessage("");
+        setImage(null);
+        setPreview(null);
       }
     } catch (err) {
       alert("An error occurred: " + err);

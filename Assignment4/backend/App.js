@@ -1,7 +1,3 @@
-// Author: Roger Villeda
-// ISU-Id: rvilleda@iastate.edu
-// Date: 11/11/2024
-
 const express = require("express");
 const cors = require("cors");
 const fs = require("fs"); // Import fs only once
@@ -66,6 +62,33 @@ app.get("/contact", (req, res) => {
   }
 });
 
+
+// Endpoint to search contacts by name
+app.get("/contact/name", (req, res) => {
+  const { contact_name } = req.query;
+
+  try {
+    if (!contact_name) {
+      return res.status(400).send({ error: "contact_name is required" });
+    }
+
+    const query = "SELECT * FROM contact WHERE LOWER(contact_name) LIKE LOWER(?)";
+    const searchValue = `%${contact_name}%`; // Add wildcards for partial match
+
+    db.query(query, [searchValue], (err, result) => {
+      if (err) {
+        console.error("Error fetching contacts:", err);
+        return res.status(500).send({ error: "Error fetching contacts: " + err });
+      }
+      res.status(200).send(result);
+    });
+  } catch (err) {
+    console.error("Error in GET /contact/name:", err);
+    res.status(500).send({ error: "An unexpected error occurred: " + err.message });
+  }
+});
+
+
 // Endpoint to add a new contact
 app.post("/contact", upload.single("image"), (req, res) => {
   try {
@@ -99,37 +122,6 @@ app.post("/contact", upload.single("image"), (req, res) => {
     res.status(500).send({ error: "An unexpected error occurred: " + err.message });
   }
 });
-// Endpoint to search contacts by name or partial name
-app.get("/contact/search", (req, res) => {
-  const { name } = req.query; // Get the name from the query parameters
-
-  if (!name) {
-    return res.status(400).send({ error: "Name query parameter is required." });
-  }
-
-  try {
-    // Use a SQL query with a LIKE operator for partial matching
-    const query = "SELECT * FROM contact WHERE contact_name LIKE ?";
-    const formattedName = `%${name}%`; // Allow for partial matches
-
-    db.query(query, [formattedName], (err, result) => {
-      if (err) {
-        console.error("Error searching contacts:", err);
-        return res.status(500).send({ error: "Error searching contacts: " + err.message });
-      }
-
-      if (result.length === 0) {
-        return res.status(404).send({ message: "No contacts found matching the name." });
-      }
-
-      res.status(200).send(result);
-    });
-  } catch (err) {
-    console.error("Unexpected error in GET /contact/search:", err);
-    res.status(500).send({ error: "An unexpected error occurred: " + err.message });
-  }
-});
-
 
 // Endpoint to update a contact by ID
 app.put("/contact/:id", upload.single("image"), (req, res) => {
@@ -197,6 +189,7 @@ app.delete("/contact/:id", (req, res) => {
     res.status(500).send({ error: "An unexpected error occurred: " + err.message });
   }
 });
+
 
 // Start the server
 app.listen(port, () => {
