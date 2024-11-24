@@ -99,6 +99,37 @@ app.post("/contact", upload.single("image"), (req, res) => {
     res.status(500).send({ error: "An unexpected error occurred: " + err.message });
   }
 });
+// Endpoint to search contacts by name or partial name
+app.get("/contact/search", (req, res) => {
+  const { name } = req.query; // Get the name from the query parameters
+
+  if (!name) {
+    return res.status(400).send({ error: "Name query parameter is required." });
+  }
+
+  try {
+    // Use a SQL query with a LIKE operator for partial matching
+    const query = "SELECT * FROM contact WHERE contact_name LIKE ?";
+    const formattedName = `%${name}%`; // Allow for partial matches
+
+    db.query(query, [formattedName], (err, result) => {
+      if (err) {
+        console.error("Error searching contacts:", err);
+        return res.status(500).send({ error: "Error searching contacts: " + err.message });
+      }
+
+      if (result.length === 0) {
+        return res.status(404).send({ message: "No contacts found matching the name." });
+      }
+
+      res.status(200).send(result);
+    });
+  } catch (err) {
+    console.error("Unexpected error in GET /contact/search:", err);
+    res.status(500).send({ error: "An unexpected error occurred: " + err.message });
+  }
+});
+
 
 // Endpoint to update a contact by ID
 app.put("/contact/:id", upload.single("image"), (req, res) => {
