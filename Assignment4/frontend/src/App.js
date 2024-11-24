@@ -4,6 +4,8 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import Contacts from "./Contacts";
 import Sidebar from "./Sidebar";
 import AddContact from "./AddContacts.js";
+import DeleteContact from "./DeleteContact.js";
+import UpdateContact from "./UpdateContact.js";
 
 function App() {
     const [contacts, setContacts] = useState([]);
@@ -18,6 +20,9 @@ function App() {
                         <Route path="/" element={<div>Welcome to the Contacts App!</div>} />
                         <Route path="/contacts" element={<Contacts contacts={contacts} setContacts={setContacts} />} />
                         <Route path="/add-contact" element={<AddContact contacts={contacts} setContacts={setContacts} />} /> {/* Fix the component usage */}
+                        <Route path="/delete-contact" element={<DeleteContact contacts={contacts} setContacts={setContacts} />} /> {/* Fix the component usage */}
+                        <Route path="/update-contact" element={<UpdateContact contacts={contacts} setContacts={setContacts} />} /> {/* Fix the component usage */}
+
                     </Routes>
                 </div>
             </div>

@@ -1,6 +1,6 @@
-// Author: Alislaa Mwamba
-// ISU-Id: mwambama@iastate.edu
-// Date: 11/11/2024 
+// Author: Roger Villeda
+// ISU-Id: rvilleda@iastate.edu
+// Date: 11/11/2024
 
 const express = require("express");
 const cors = require("cors");
@@ -50,25 +50,24 @@ if (!fs.existsSync("uploads")) {
   fs.mkdirSync("uploads");
 }
 
-// Endpoint to get all posts
+// Endpoint to get all contacts
 app.get("/contact", (req, res) => {
   try {
     db.query("SELECT * FROM contact", (err, result) => {
       if (err) {
         console.error({ error: "Error reading all contacts:" + err });
-        return res.status(500).send({ error: "Error reading all contacts" + err });
+        return res.status(500).send({ error: "Error reading all contacts: " + err });
       }
       res.status(200).send(result);
     });
   } catch (err) {
-    console.error({ error: "An unexpected error occurred" + err });
-    res.status(500).send({ error: "An unexpected error occurred" + err });
+    console.error({ error: "An unexpected error occurred: " + err });
+    res.status(500).send({ error: "An unexpected error occurred: " + err });
   }
 });
 
 // Endpoint to add a new contact
 app.post("/contact", upload.single("image"), (req, res) => {
-
   try {
     const { contact_name, phone_number, message } = req.body;
     const imageUrl = req.file ? `/uploads/${req.file.filename}` : null;
@@ -101,6 +100,74 @@ app.post("/contact", upload.single("image"), (req, res) => {
   }
 });
 
+// Endpoint to update a contact by ID
+app.put("/contact/:id", upload.single("image"), (req, res) => {
+  const { id } = req.params;
+  const { contact_name, phone_number, message } = req.body;
+  const imageUrl = req.file ? `/uploads/${req.file.filename}` : null;
+
+  try {
+    // Check if contact exists
+    const checkQuery = "SELECT * FROM contact WHERE id = ?";
+    db.query(checkQuery, [id], (checkErr, checkResult) => {
+      if (checkErr) {
+        console.error("Error checking contact:", checkErr);
+        return res.status(500).send({ error: "Error checking contact: " + checkErr.message });
+      }
+
+      if (checkResult.length === 0) {
+        return res.status(404).send({ error: "Contact not found" });
+      }
+
+      // Update the contact
+      const updateQuery = `
+        UPDATE contact 
+        SET 
+          contact_name = ?, 
+          phone_number = ?, 
+          message = ?, 
+          image_url = COALESCE(?, image_url) 
+        WHERE id = ?`;
+      db.query(updateQuery, [contact_name, phone_number, message, imageUrl, id], (updateErr, result) => {
+        if (updateErr) {
+          console.error("Error updating contact:", updateErr);
+          return res.status(500).send({ error: "Error updating contact: " + updateErr.message });
+        }
+
+        res.status(200).send({ message: "Contact updated successfully" });
+      });
+    });
+  } catch (err) {
+    console.error("Error in PUT /contact/:id:", err);
+    res.status(500).send({ error: "An unexpected error occurred: " + err.message });
+  }
+});
+
+// Endpoint to delete a contact by ID
+app.delete("/contact/:id", (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const query = "DELETE FROM contact WHERE id = ?";
+    db.query(query, [id], (err, result) => {
+      if (err) {
+        console.error("Error deleting contact:", err);
+        return res.status(500).send({ error: "Error deleting contact: " + err.message });
+      }
+
+      if (result.affectedRows === 0) {
+        return res.status(404).send({ error: "Contact not found" });
+      }
+
+      res.status(200).send({ message: "Contact deleted successfully" });
+    });
+  } catch (err) {
+    console.error("Error in DELETE /contact/:id:", err);
+    res.status(500).send({ error: "An unexpected error occurred: " + err.message });
+  }
+});
+
+// Start the server
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
 });
